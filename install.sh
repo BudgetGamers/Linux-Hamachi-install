@@ -82,6 +82,29 @@ esac
 
 echo_success "Flatpak installed."
 
+# --- Step 1.5: Software Center Integration ---
+
+echo_info "Checking for Software Center integration..."
+if command -v gnome-software >/dev/null 2>&1; then
+    echo_info "GNOME Software detected, installing Flatpak plugin..."
+    case "$DISTRO" in
+        ubuntu|debian|linuxmint|pop|kali|parrot|raspbian) apt-get install -y gnome-software-plugin-flatpak || true ;;
+        fedora|nobara) dnf install -y gnome-software-plugin-flatpak || true ;;
+        arch|manjaro|endeavouros) pacman -S --noconfirm gnome-software-plugin-flatpak || true ;;
+        opensuse*|suse) zypper install -y gnome-software-plugin-flatpak || true ;;
+    esac
+fi
+
+if command -v plasma-discover >/dev/null 2>&1; then
+    echo_info "KDE Discover detected, installing Flatpak plugin..."
+    case "$DISTRO" in
+        ubuntu|debian|linuxmint|pop|kali|parrot|raspbian) apt-get install -y plasma-discover-backend-flatpak || true ;;
+        fedora|nobara) dnf install -y plasma-discover-backend-flatpak || true ;;
+        arch|manjaro|endeavouros) pacman -S --noconfirm discover || true ;;
+        opensuse*|suse) zypper install -y discover-backend-flatpak || true ;;
+    esac
+fi
+
 # --- Step 2: Add Flathub and Install Haguichi ---
 
 echo_info "Adding Flathub repository..."
