@@ -267,14 +267,23 @@ echo_info "Waiting 5 seconds before connecting to networks..."
 sleep 5
 for NETWORK_ID in "${NETWORKS[@]}"; do
     echo_info "Attempting to join network: $NETWORK_ID..."
-    # Try to join. If it fails (likely full), move to the next one.
-    if sudo hamachi join "$NETWORK_ID" "$SHARED_PASS" 2>/dev/null; then
+    
+    # Attempt to join and capture output (stdout + stderr)
+    JOIN_RESULT=$(sudo hamachi join "$NETWORK_ID" "$SHARED_PASS" 2>&1 || true)
+    
+    # Check if we are actually in the network list now
+    # -F for fixed string, -w for whole word to ensure exact match of ID
+    if sudo hamachi list | grep -Fwq "$NETWORK_ID"; then
         sudo hamachi go-online "$NETWORK_ID"
         echo_success "Successfully joined $NETWORK_ID!"
         JOINED=true
         break
     else
-        echo_warn "Network $NETWORK_ID is likely full or unavailable, trying next..."
+        echo_warn "Could not join $NETWORK_ID. It may be full or unavailable."
+        if [[ -n "$JOIN_RESULT" ]]; then
+            echo "   Hamachi said: $JOIN_RESULT"
+        fi
+        echo_info "Trying next network..."
     fi
 done
 
