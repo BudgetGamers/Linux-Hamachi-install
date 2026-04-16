@@ -201,6 +201,9 @@ fi
 
 # --- Step 5: Application Desktop Entry ---
 
+echo_info "Downloading Haguichi icon..."
+curl -L "https://raw.githubusercontent.com/ztefn/haguichi/refs/heads/master/data/icons/hicolor-source.svg" -o /usr/share/pixmaps/haguichi.svg
+
 echo_info "Creating desktop entry for Haguichi..."
 DESKTOP_FILE="/usr/share/applications/haguichi.desktop"
 
@@ -211,7 +214,7 @@ Name=Haguichi
 GenericName=Hamachi GUI
 Comment=A graphical frontend for LogMeIn Hamachi
 Exec=flatpak run com.github.ztefn.haguichi
-Icon=com.github.ztefn.haguichi
+Icon=/usr/share/pixmaps/haguichi.svg
 Terminal=false
 Categories=Network;GTK;
 Keywords=hamachi;vpn;haguichi;
@@ -222,13 +225,13 @@ echo_success "Desktop entry created at $DESKTOP_FILE"
 
 echo_info "Starting Automated Network Configuration..."
 
-echo_info "Waiting 5 seconds before login..."
+echo_info "Processing New Client..."
 sleep 5
 sudo hamachi login
-sleep 10
+sleep 2
 
-# Set Nickname based on hostname so you can identify them in your logs
-sudo hamachi set-nick "Player-$(hostname)"
+# Set Nickname based on hostname and date so you can identify them in your logs
+sudo hamachi set-nick "Player-$(hostname)-$(date +%m/%d/%y)"
 
 # Define your list of networks here
 NETWORKS=(
@@ -260,6 +263,8 @@ SHARED_PASS="BudgetGamers"
 # --- Smart Joiner Loop ---
 # This iterates through your list and stops as soon as it successfully joins one
 JOINED=false
+echo_info "Waiting 5 seconds before connecting to networks..."
+sleep 5
 for NETWORK_ID in "${NETWORKS[@]}"; do
     echo_info "Attempting to join network: $NETWORK_ID..."
     # Try to join. If it fails (likely full), move to the next one.
