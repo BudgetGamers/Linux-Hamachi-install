@@ -222,9 +222,10 @@ echo_success "Desktop entry created at $DESKTOP_FILE"
 
 echo_info "Starting Automated Network Configuration..."
 
-# Ensure Hamachi is initialized (No account required on Linux)
+echo_info "Waiting 5 seconds before login..."
+sleep 5
 sudo hamachi login
-sleep 2
+sleep 10
 
 # Set Nickname based on hostname so you can identify them in your logs
 sudo hamachi set-nick "Player-$(hostname)"
