@@ -220,6 +220,72 @@ EOF
 chmod 644 "$DESKTOP_FILE"
 echo_success "Desktop entry created at $DESKTOP_FILE"
 
+echo_info "Starting Automated Network Configuration..."
+
+# Ensure Hamachi is initialized (No account required on Linux)
+sudo hamachi login
+sleep 2
+
+# Set Nickname based on hostname so you can identify them in your logs
+sudo hamachi set-nick "Player-$(hostname)"
+
+# Define your list of networks here
+NETWORKS=(
+    "BudgetGamers01"
+    "BudgetGamers02"
+    "BudgetGamers03"
+    "BudgetGamers04"
+    "BudgetGamers05"
+    "BudgetGamers06"
+    "BudgetGamers07"
+    "BudgetGamers08"
+    "BudgetGamers09"
+    "BudgetGamers10"
+    "BudgetGamers11"
+    "BudgetGamers12"
+    "BudgetGamers13"
+    "BudgetGamers14"
+    "BudgetGamers15"
+    "BudgetGamers16"
+    "BudgetGamers17"
+    "BudgetGamers18"
+    "BudgetGamers19"
+    "BudgetGamers20"
+)
+
+# The shared password for all networks
+SHARED_PASS="BudgetGamers"
+
+# --- Smart Joiner Loop ---
+# This iterates through your list and stops as soon as it successfully joins one
+JOINED=false
+for NETWORK_ID in "${NETWORKS[@]}"; do
+    echo_info "Attempting to join network: $NETWORK_ID..."
+    # Try to join. If it fails (likely full), move to the next one.
+    if sudo hamachi join "$NETWORK_ID" "$SHARED_PASS" 2>/dev/null; then
+        sudo hamachi go-online "$NETWORK_ID"
+        echo_success "Successfully joined $NETWORK_ID!"
+        JOINED=true
+        break
+    else
+        echo_warn "Network $NETWORK_ID is likely full or unavailable, trying next..."
+    fi
+done
+
+if [ "$JOINED" = false ]; then
+    echo_error "Could not join any networks. They may all be full (5/5)."
+fi
+
+# Implement Broadcast Protection (The "Quest Fix")
+# This prevents discovery 'pings' from saturating your 60yo home's upload
+if command -v iptables >/dev/null 2>&1; then
+    echo_info "Implementing broadcast block to protect bandwidth..."
+    # Drop mDNS and SSDP discovery on the hamachi interface
+    sudo iptables -A INPUT -i ham0 -p udp --dport 5353 -j DROP
+    sudo iptables -A INPUT -i ham0 -p udp --dport 1900 -j DROP
+    echo_success "Firewall rules applied (Quest discovery chatter blocked)."
+fi
+
 echo_success "Setup complete!"
-echo_info "You can now find Haguichi in your Applications menu."
-echo_info "To login via terminal: sudo hamachi login"
+echo_info "Haguichi is ready in your Applications menu."
+echo_info "Your Hamachi IP is stable and will not change after reboots."
